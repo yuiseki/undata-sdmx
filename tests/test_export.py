@@ -142,3 +142,47 @@ def test_component_rows():
     )  # fmt: skip
     assert by["OBS_STATUS"][3:7] == ("attribute", None, "Mandatory", "observation")
     assert [r[2] for r in rows][:5] == ["FREQ", "REF_AREA", "COMMODITY", "TRANSACTION", "TIME_PERIOD"]
+
+
+@pytest.mark.parametrize(
+    ("org", "area", "organisation", "published"),
+    [
+        (None, "392", "UNSD", True),
+        ("1B0", "AF", "UN organisations", True),
+        ("6O0", "JP", "OECD", True),
+        ("4D0", "DE", "Eurostat", True),
+        ("4D0", "TR", "Eurostat", True),
+        ("4D0", "XK", "Eurostat", False),
+        ("1C0", "TH", "IMF", False),
+        ("9Z9", "JP", "unchecked", False),
+    ],
+)
+def test_compiler_status(org, area, organisation, published):
+    got = m.compiler_status(org, area)
+    assert got[:2] == (organisation, published) and got[2]
+
+
+def test_rows_of_unpublished_compilers_are_left_out():
+    con = duckdb.connect()
+    con.execute(
+        "create table t as select * from (values ('NA_MAIN', 'DE', '4D0', 1.0), "
+        "('NA_MAIN', 'DE', '4D0', 2.0), ('NA_MAIN', 'XK', '4D0', 3.0), "
+        "('NA_MAIN', 'TH', '1C0', 4.0), ('NA_MAIN', 'JP', '6O0', 5.0)) "
+        "v(DATAFLOW, REF_AREA, COMPILING_ORG, OBS_VALUE)"
+    )
+    rows, keep = m.split_by_compiler(con, "t", "NA_MAIN")
+    assert sorted((r[1], r[3], r[4], r[5]) for r in rows) == [
+        ("1C0", "TH", 1, False), ("4D0", "DE", 2, True), ("4D0", "XK", 1, False),
+        ("6O0", "JP", 1, True),
+    ]  # fmt: skip
+    assert con.sql(f"select OBS_VALUE from t where {keep} order by 1").fetchall() == [
+        (1.0,), (2.0,), (5.0,)
+    ]
+
+
+def test_a_flow_without_compiling_org_is_published_whole():
+    con = duckdb.connect()
+    con.execute("create table t as select 'F' as DATAFLOW, '392' as REF_AREA, 1.0 as OBS_VALUE")
+    rows, keep = m.split_by_compiler(con, "t", "F")
+    assert [(r[1], r[2], r[3], r[4], r[5]) for r in rows] == [(None, "UNSD", "392", 1, True)]
+    assert con.sql(f"select count(*) from t where {keep}").fetchone()[0] == 1

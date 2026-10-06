@@ -5,6 +5,8 @@
     data/parquet/codelists.parquet    every code of every codelist the flows' DSDs use, with its label
     data/parquet/components.parquet   every dimension, attribute and measure of each flow, with
                                       its concept name and codelist
+    data/parquet/compilers.parquet    rows per dataflow, compiling organisation and reference
+                                      area, whether they are published and why
 
 Only the newest run whose MANIFEST.json says "complete" is exported: the API
 overwrites its data in place, so the newest run is the current one.
@@ -23,6 +25,16 @@ expression before the cast; a value that does not fit stops the run with the
 dataflow, the column and the value. An empty cell is NULL, and so are "NA"
 and ":" in a numeric column, which the answers write in OBS_VALUE for an
 observation without a value (the raw files keep them).
+
+Only rows whose compiling organisation allows redistribution under its own
+terms are written. NA_MAIN carries the organisation that compiled each row
+in COMPILING_ORG (Eurostat, the OECD, UN organisations, the IMF); UNdata's
+terms do not speak for them, so compiler_status() reads each (organisation,
+reference area) under that organisation's terms. A flow without
+COMPILING_ORG, or a row where it is empty, is UNSD's under the UNdata terms.
+An organisation it does not know is left out until its terms are checked.
+compilers.parquet keeps the counts and the reason for every pair, published
+or not.
 
     uv run python scripts/03_export_parquet.py
 """
@@ -114,6 +126,71 @@ COMPONENTS_DDL = (
 )
 
 
+UNDATA_TERMS = "https://data.un.org/Host.aspx?Content=UNdataUse"
+EUROSTAT_TERMS = "https://ec.europa.eu/eurostat/help/copyright-notice"
+# Countries whose Eurostat data may be reused commercially: EU members, EFTA
+# members and official EU candidate countries (Eurostat's copyright notice).
+# Kosovo (XK) is a potential candidate, not a candidate, so it is not here.
+EUROSTAT_NON_EU_COMMERCIAL_OK = {
+    "AL", "BA", "ME", "MK", "RS", "TR", "UA", "MD", "GE",  # candidates
+    "CH", "IS", "LI", "NO",  # EFTA
+}  # fmt: skip
+EU_AND_AGGREGATES = {
+    "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GR", "HR", "HU",
+    "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SI", "SK",
+    "B5", "B6", "I8",  # EU27, EU28 and euro area aggregates
+}  # fmt: skip
+
+
+def compiler_status(org: str | None, area: str) -> tuple[str, bool, str]:
+    """(organisation, published, reason) for rows of this COMPILING_ORG and REF_AREA."""
+    if org is None:
+        return "UNSD", True, f"UNSD's own data under the UNdata terms of use; {UNDATA_TERMS}"
+    if org == "1B0":
+        return ("UN organisations", True,
+                f"UN organisations' data on UNdata, under the UNdata terms of use; {UNDATA_TERMS}")  # fmt: skip
+    if org == "6O0":
+        return ("OECD", True, "OECD terms allow reuse, including commercial, with attribution; "
+                "https://www.oecd.org/en/about/terms-conditions.html")  # fmt: skip
+    if org == "4D0":
+        if area in EU_AND_AGGREGATES or area in EUROSTAT_NON_EU_COMMERCIAL_OK:
+            return ("Eurostat", True, "Eurostat statistical data may be reused, commercially "
+                    f"too, with the source acknowledged; {EUROSTAT_TERMS}")  # fmt: skip
+        return ("Eurostat", False, "Eurostat data of countries other than EU members, EFTA "
+                f"members and official EU candidates may not be reused commercially; {EUROSTAT_TERMS}")  # fmt: skip
+    if org == "1C0":
+        return ("IMF", False, "IMF data need permission for commercial reuse and for "
+                "re-publishing a substantial amount; https://www.imf.org/en/about/copyright-and-terms")  # fmt: skip
+    return "unchecked", False, "the compiling organisation's terms are not checked yet"
+
+
+def split_by_compiler(con, table: str, flow_id: str) -> tuple[list[tuple], str]:
+    """Rows per (COMPILING_ORG, REF_AREA) with the decision, and a predicate for the published rows."""
+    has = "COMPILING_ORG" in con.sql(f"select * from {table} limit 0").columns
+    org = "COMPILING_ORG" if has else "null::varchar"
+    counts = con.sql(
+        f"select {org} as o, REF_AREA, count(*) from {table} group by all order by 2, 1"
+    ).fetchall()
+    rows, keep = [], []
+    for o, area, n in counts:
+        name, published, reason = compiler_status(o, area)
+        rows.append((flow_id, o, name, area, n, published, reason))
+        if published:
+            keep.append(f"{area}|{o or ''}")
+    if len(keep) == len(counts):
+        return rows, "true"
+    if not keep:
+        return rows, "false"
+    key = f"REF_AREA || '|' || coalesce({org}, '')"
+    return rows, f"{key} in ({', '.join(repr(k) for k in keep)})"
+
+
+COMPILERS_DDL = (
+    "dataflow varchar, compiling_org varchar, organisation varchar, ref_area varchar, "
+    "rows bigint, published boolean, reason varchar"
+)
+
+
 def current_run(raw: Path) -> Path:
     runs = [p.parent for p in sorted(raw.glob("*/MANIFEST.json"))
             if json.loads(p.read_text()).get("complete")]  # fmt: skip
@@ -142,7 +219,7 @@ def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     con = duckdb.connect()
     con.execute("set memory_limit = '8GB'")
-    components, dsd_files = [], []
+    components, dsd_files, compilers = [], [], []
     for flow_id, info in manifest["dataflows"].items():
         flow = flows[flow_id]
         dsd_path = d / info["datastructure_file"]
@@ -150,14 +227,30 @@ def main() -> int:
         dsd = sdmx.parse_datastructure(dsd_path.read_bytes())
         components += component_rows(flow, dsd)
         out = OUT / f"{flow_id}.parquet"
-        sql = select_sql(con, flow_files(d, manifest, flow_id), dsd.csv_header(), flow_id)
-        con.execute(f"copy ({sql}) to '{out}' ({COPY})")
+        # one insert per file, in the manifest's order, and the copy sorted by
+        # rowid: a filtered copy of a million rows wrote its row groups out of
+        # order even with preserve_insertion_order on
+        files = flow_files(d, manifest, flow_id)
+        con.execute("drop table if exists flow_rows")
+        for i, f in enumerate(files):
+            sql = select_sql(con, [f], dsd.csv_header(), flow_id)
+            con.execute(f"create table flow_rows as {sql}" if i == 0
+                        else f"insert into flow_rows {sql}")  # fmt: skip
+        rows, keep = split_by_compiler(con, "flow_rows", flow_id)
+        compilers += rows
+        con.execute(
+            f"copy (select * from flow_rows where {keep} order by rowid) to '{out}' ({COPY})"
+        )
+        con.execute("drop table flow_rows")
         n = con.sql(f"select count(*) from '{out}'").fetchone()[0]
-        print(f"{d.name}: {out.name} {n:,} rows, {out.stat().st_size:,} bytes", flush=True)
+        total = sum(r[4] for r in rows)
+        print(f"{d.name}: {out.name} {n:,} of {total:,} rows published, "
+              f"{out.stat().st_size:,} bytes", flush=True)  # fmt: skip
 
     for name, ddl, rows in (
         ("codelists", CODELISTS_DDL, codelist_rows(sorted(set(dsd_files)))),
         ("components", COMPONENTS_DDL, components),
+        ("compilers", COMPILERS_DDL, compilers),
     ):
         con.execute(f"create or replace table t ({ddl})")
         con.executemany(f"insert into t values ({', '.join('?' * len(rows[0]))})", rows)

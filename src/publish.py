@@ -8,6 +8,12 @@ runs are deleted on the Hub in the same commit (the data follows upstream
 corrections). The card must declare every Parquet file under data/parquet/
 as a subset and must name the run (raw/<YYYY-MM-DD>/).
 
+A raw SDMX-CSV file goes up only when every row of it is published: an
+area with any row left out for its compiling organisation's terms
+(published = false in parquet/compilers.parquet) keeps its file local. The
+manifest goes up whole, so the withheld files stay listed with their
+hashes.
+
     uv run python src/publish.py             # dry run: list the files and their total size
     uv run python src/publish.py --push
 """
@@ -44,6 +50,16 @@ def current_run(data: Path) -> Path:
     return runs[-1]
 
 
+def withheld(data: Path) -> set[tuple[str, str]]:
+    """(dataflow, ref_area) of the raw files with any row left out of the Parquet."""
+    import duckdb
+
+    p = data / "parquet" / "compilers.parquet"
+    if not p.exists():
+        raise SystemExit("no parquet/compilers.parquet; run scripts/03_export_parquet.py")
+    return set(duckdb.sql(f"select dataflow, ref_area from '{p}' where not published").fetchall())
+
+
 def collect(data: Path) -> list[str]:
     """The files to upload, relative to data/; stops on anything the card or a manifest refutes."""
     card = (data / "README.md").read_text(encoding="utf-8")
@@ -58,7 +74,10 @@ def collect(data: Path) -> list[str]:
     d = current_run(data)
     if f"raw/{d.name}/" not in card:
         raise SystemExit(f"the card does not name the current run raw/{d.name}/")
+    hold = withheld(data)
     for name, e in json.loads((d / "MANIFEST.json").read_text())["files"].items():
+        if e.get("kind") == "data" and (e["dataflow"], e["ref_area"]) in hold:
+            continue
         if sha256(d / name) != e["sha256"]:
             raise SystemExit(f"raw/{d.name}/{name} is not the file in its manifest")
         files.append(f"raw/{d.name}/{name}")

@@ -101,3 +101,16 @@ def test_rows_unlike_the_stated_observations_fail(tmp_path):
     man["dataflows"]["DF_UNDATA_ENERGY"]["stated_observations"] = 12
     (d / "MANIFEST.json").write_text(json.dumps(man))
     assert m.verify_raw(d) > 0
+
+
+@pytest.mark.parametrize(
+    ("org", "area", "want"),
+    [("4D0", "DE", True), ("4D0", "XK", False), ("1C0", "TH", False), ("", "392", True)],
+)
+def test_a_csv_row_is_expected_in_the_parquet_only_when_its_compiler_is_published(org, area, want):
+    header = ["DATAFLOW", "REF_AREA", "OBS_VALUE", "COMPILING_ORG"]
+    assert m.published_row(header, ["NA_MAIN", area, "1", org]) is want
+
+
+def test_a_row_of_a_flow_without_compiling_org_is_published():
+    assert m.published_row(["DATAFLOW", "REF_AREA", "OBS_VALUE"], ["F", "392", "1"]) is True

@@ -3,6 +3,7 @@ import importlib.util
 import json
 from pathlib import Path
 
+import duckdb
 import pytest
 
 _spec = importlib.util.spec_from_file_location(
@@ -16,14 +17,22 @@ def _run(d: Path, name: str, complete=True, raw=b"x", manifest_raw=b"x"):
     r = d / "raw" / name
     (r / "data" / "F").mkdir(parents=True)
     (r / "data" / "F" / "A.csv").write_bytes(raw)
-    files = {"data/F/A.csv": {"sha256": hashlib.sha256(manifest_raw).hexdigest()}}
+    (r / "data" / "F" / "B.csv").write_bytes(b"y")
+    files = {"data/F/A.csv": {"sha256": hashlib.sha256(manifest_raw).hexdigest(),
+                              "kind": "data", "dataflow": "F", "ref_area": "A"},
+             "data/F/B.csv": {"sha256": hashlib.sha256(b"y").hexdigest(),
+                              "kind": "data", "dataflow": "F", "ref_area": "B"}}  # fmt: skip
     (r / "MANIFEST.json").write_text(json.dumps({"complete": complete, "files": files}))
 
 
-def _data(tmp_path, card_tables=("F",), runs=(("2026-10-06", True),), **kw):
+def _data(tmp_path, card_tables=("F", "compilers"), runs=(("2026-10-06", True),), **kw):
     d = tmp_path / "data"
     (d / "parquet").mkdir(parents=True)
     (d / "parquet" / "F.parquet").write_bytes(b"PAR1")
+    duckdb.sql(
+        "copy (select * from (values ('F', 'A', true), ('F', 'B', false), ('F', 'B', true)) "
+        f"v(dataflow, ref_area, published)) to '{d / 'parquet' / 'compilers.parquet'}'"
+    )
     for name, complete in runs:
         _run(d, name, complete, **kw)
     card = "---\nconfigs:\n" + "".join(m.subset_entry(t) for t in card_tables) + "---\n"
@@ -37,7 +46,8 @@ def test_collect_lists_card_parquet_and_the_current_run(tmp_path):
     d = _data(tmp_path, runs=(("2026-09-01", True), ("2026-10-06", True), ("2026-10-07", False)))
     assert m.collect(d) == [
         "README.md", "LICENSE", "provenance.yaml", "parquet/F.parquet",
-        "raw/2026-10-06/data/F/A.csv", "raw/2026-10-06/MANIFEST.json",
+        "parquet/compilers.parquet", "raw/2026-10-06/data/F/A.csv",
+        "raw/2026-10-06/MANIFEST.json",
     ]  # fmt: skip
 
 

@@ -17,7 +17,11 @@ complete run:
   - each <dataflow>.parquet has the CSV's columns in order, each of the type
     column_type gives its name, and every cell equal to the CSV's (read with
     the csv module, in the same file and row order; text as text, numbers as
-    Python reads them, empty and "NA" as NULL)
+    Python reads them, empty and "NA" as NULL), counting only the CSV rows
+    whose compiling organisation export.compiler_status() publishes
+  - compilers.parquet has the CSV's row count for every (dataflow,
+    compiling organisation, reference area) and the decision
+    compiler_status() gives it
   - every code in a dimension column is in its codelist in codelists.parquet
   - a DuckDB with extension autoloading turned off opens every file
   - no row group carries a bloom filter
@@ -123,6 +127,12 @@ def verify_raw(d: Path) -> int:
     return check.failures
 
 
+def published_row(header: list[str], row: list[str]) -> bool:
+    """Whether the export keeps this SDMX-CSV row (by its COMPILING_ORG and REF_AREA)."""
+    cols = dict(zip(header, row, strict=True))
+    return export.compiler_status(cols.get("COMPILING_ORG") or None, cols["REF_AREA"])[1]
+
+
 def verify_parquet(d: Path) -> int:
     import duckdb
 
@@ -133,7 +143,7 @@ def verify_parquet(d: Path) -> int:
     plain = duckdb.connect(
         config={"autoload_known_extensions": False, "autoinstall_known_extensions": False}
     )
-    outs = [PQ / "codelists.parquet", PQ / "components.parquet"]
+    outs = [PQ / "codelists.parquet", PQ / "components.parquet", PQ / "compilers.parquet"]
     for p in outs:
         if not p.exists():
             check(False, f"{p.name}: missing")
@@ -143,6 +153,10 @@ def verify_parquet(d: Path) -> int:
         f"select codelist_agency, codelist_id, codelist_version, code from '{outs[0]}'"
     ).fetchall():
         codes.setdefault((agency, cid, ver), set()).add(code)
+    stated = {(f, o, a): (n, p) for f, o, a, n, p in con.sql(
+        f"select dataflow, compiling_org, ref_area, rows, published from '{outs[2]}'"
+    ).fetchall()}  # fmt: skip
+    counted: dict = {}
 
     for flow_id, info in manifest["dataflows"].items():
         p = PQ / f"{flow_id}.parquet"
@@ -168,6 +182,11 @@ def verify_parquet(d: Path) -> int:
                 r = csv.reader(fh)
                 next(r)
                 for row in r:
+                    cols = dict(zip(header, row, strict=True))
+                    key = (flow_id, cols.get("COMPILING_ORG") or None, cols["REF_AREA"])
+                    counted[key] = counted.get(key, 0) + 1
+                    if not published_row(header, row):
+                        continue
                     if bi == len(batch):
                         batch, bi = cur.fetchmany(100_000), 0
                         if not batch:
@@ -194,6 +213,11 @@ def verify_parquet(d: Path) -> int:
             if out:
                 unknown[c.id] = out[:5]
         check(not unknown, f"{p.name}: every dimension code is in its codelist ({unknown or 'all'})")
+
+    want = {k: (n, export.compiler_status(k[1], k[2])[1]) for k, n in counted.items()}
+    check(stated == want,
+          f"compilers.parquet: rows and decision for all {len(want)} (dataflow, organisation, "
+          f"area) as counted in the CSVs ({sorted(set(stated.items()) ^ set(want.items()))[:3] or 'all match'})")  # fmt: skip
 
     for p in outs:
         n = plain.sql(f"select count(*) from '{p}'").fetchone()[0]
