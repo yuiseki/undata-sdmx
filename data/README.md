@@ -1,6 +1,6 @@
 ---
 license: other
-license_name: undata-terms-of-use
+license_name: undata-terms-of-use-and-compiler-terms
 license_link: https://data.un.org/Host.aspx?Content=UNdataUse
 language:
 - en
@@ -35,6 +35,8 @@ configs:
   data_files: parquet/codelists.parquet
 - config_name: 'components'
   data_files: parquet/components.parquet
+- config_name: 'compilers'
+  data_files: parquet/compilers.parquet
 ---
 
 # undata-sdmx
@@ -43,15 +45,18 @@ Five dataflows of the UNdata SDMX API of the United Nations Statistics
 Division (UNSD), complete as the API served them on 2026-10-06: the UNSD
 Energy Statistics, the UNSD energy balances, the national accounts main
 aggregates, and the SEEA air emission and physical energy flow accounts.
-5,457,708 observations in all, with the data structure definitions and
-codelists that describe them.
+5,395,787 observations are published here, with the data structure
+definitions and codelists that describe them; 61,921 rows of `NA_MAIN` are
+left out because the organisation that compiled them does not allow
+redistribution under its own terms (see Licence).
 
 Source: UNdata, United Nations Statistics Division, http://data.un.org
 (SDMX API, https://data.un.org/Host.aspx?Content=API). Reuse is allowed
 under UNdata's Terms of Use provided UNdata is cited; the terms do not
-mention commercial use (see Licence). Part of `NA_MAIN` is marked in the
-data itself as compiled by Eurostat, the OECD or the IMF (see Things to
-know).
+mention commercial use (see Licence). `NA_MAIN` marks each row with the
+organisation that compiled it (Eurostat, the OECD, UN organisations, the
+IMF); a row is published only when that organisation's terms allow
+redistribution, commercial use included.
 
 ## The data follows upstream corrections
 
@@ -69,14 +74,16 @@ not a release date: the API states none.
 |---|---:|---:|---:|---|---|
 | `DF_UNDATA_ENERGY` | 1,919,234 | 1,919,234 | 245 | 1990-2024 | UNSD Energy Statistics (UNSD 1.2): production, trade and use of 75 energy commodities, 216 transactions, in physical units |
 | `DF_UNData_EnergyBalance` | 1,045,891 | 1,045,891 | 218 | 1990-2023 | Energy balances (UNSD 1.0): 11 commodity groups by 53 balance items, in terajoules |
-| `NA_MAIN` | 1,223,766 | 1,198,925 | 218 | 1947-Q1 to 2025-Q3 | National accounts main aggregates (Eurostat structure NA_MAIN 1.9), annual and quarterly |
+| `NA_MAIN` | 1,161,845 | 1,137,010 | 159 | 1947-Q1 to 2025-Q3 | National accounts main aggregates (Eurostat structure NA_MAIN 1.9), annual and quarterly; the rows compiled by the IMF (58 areas) and Eurostat's Kosovo rows are left out |
 | `DF_SEEA_AEA` | 134,248 | 17,148 | 7 | 1990-2022 | SEEA air emission accounts (Eurostat structure SEEAAIR 1.3) |
 | `DF_SEEA_ENERGY` | 1,134,569 | 1,128,764 | 38 | 2000-2022 | SEEA physical energy flow accounts (Eurostat structure SEEANRG 1.3) |
 | `codelists` | 9,907 | | | | every code of every codelist the five structures use, with its English label |
 | `components` | 120 | | | | each flow's dimensions, measure and attributes, with concept name and codelist |
+| `compilers` | 726 | | | | rows per flow, compiling organisation and reference area, whether they are published, and why |
 
-"rows" is the number of observations; for each flow it equals the count the
-API states in its available constraint (annotation `sdmx_metrics`). "values"
+"rows" is the number of observations published. With the rows left out
+(`compilers`), each flow's total equals the count the API states in its
+available constraint (annotation `sdmx_metrics`). "values"
 is the rows whose `OBS_VALUE` is a number; the others are NULL (see below).
 
 A reference area is a country, territory or aggregate. In the two energy
@@ -106,7 +113,7 @@ In `OBS_VALUE`, "NA" and ":" are NULL too: the answers write "NA" (111,167
 rows of `DF_SEEA_AEA`) and ":" (573 rows of `DF_SEEA_AEA`, 40 of
 `DF_SEEA_ENERGY`) for an observation without a value, and leave it empty in
 5,360, 5,765 and 24,841 rows of `DF_SEEA_AEA`, `DF_SEEA_ENERGY` and
-`NA_MAIN`. Those rows are kept because their attributes may say why the
+`NA_MAIN` (24,835 of them published). Those rows are kept because their attributes may say why the
 value is missing (`OBS_STATUS`, for example `L`, `M` or `Q` in `NA_MAIN`).
 The raw files keep the tokens as sent.
 
@@ -124,7 +131,13 @@ or Conditional), `attached_to` (observation, series or dataset),
 `codelist_name`, `code`, `name`, `description`, `parent`). The flows use
 different versions of lists with the same id (`CL_AREA` 1.8 and 1.15, for
 example), so join on all three of agency, id and version, through
-`components`:
+`components`.
+
+`compilers` has (`dataflow`, `compiling_org` (the `COMPILING_ORG` code, NULL
+where the flow or row has none), `organisation`, `ref_area`, `rows`,
+`published`, `reason` (the organisation's terms in a sentence, with their
+URL)), one row per flow, organisation and area, covering every row
+fetched, published or not.
 
 ```sql
 -- DuckDB, straight off the Hub: Japan's 2023 energy statistics with labels
@@ -153,7 +166,10 @@ ORDER BY TIME_PERIOD;
 
 ## Raw files
 
-`raw/2026-10-06/` holds the API's answers byte for byte (485 MB):
+`raw/2026-10-06/` holds the API's answers byte for byte, except the 59
+answers with rows left out (58 `NA_MAIN` areas compiled by the IMF and
+Eurostat's `XK`), which are not uploaded; `MANIFEST.json` still lists them
+with their hashes:
 
 - `structure/dataflow.xml`: the API's list of 15 dataflows
 - `structure/datastructure_<agency>_<id>_<version>.xml`: each DSD with its
@@ -161,7 +177,7 @@ ORDER BY TIME_PERIOD;
 - `structure/availableconstraint_<flow>.xml`: the codes in use, the time
   range and the observation count of each flow
 - `data/<flow>/<area>.csv`: one SDMX-CSV answer per reference area (726
-  files, 502,911,717 bytes)
+  fetched, 667 uploaded)
 - `MANIFEST.json`: for every file its URL, bytes, sha256, Content-Type and
   fetch time (the API sends no Last-Modified), and for every flow what the
   API stated about it
@@ -178,7 +194,8 @@ fixing `REF_AREA` and leaving every other dimension open.
   and 41 areas, OECD for 277,347 rows and 22 areas (among them the United
   States, Japan, China, India and the OECD and G20 aggregates), UN
   organisations for 88,848 rows and 97 areas, and the IMF for 58,040 rows
-  and 58 areas. `DISS_ORG` (disseminating organisation) is the same except
+  and 58 areas. The IMF rows and Eurostat's 3,881 rows for Kosovo are not
+  published (see Licence). `DISS_ORG` (disseminating organisation) is the same except
   that it is empty for the OECD rows. `DATA_COMP` is empty. In the two SEEA
   flows `COMPILING_ORG` and `DISS_ORG` are empty; `DF_SEEA_ENERGY` covers
   38 areas: 34 European countries, the EU27 aggregate `B6`, Indonesia,
@@ -227,7 +244,10 @@ fixing `REF_AREA` and leaving every other dimension open.
   (all five equal)
 - every cell of each dataflow subset equals the CSV's, compared one by one
   in file and row order (text as text, numbers as Python reads them, empty,
-  "NA" and ":" as NULL)
+  "NA" and ":" as NULL), counting only the CSV rows whose compiling
+  organisation is published
+- `compilers` has the CSV's row count and the export's decision for every
+  flow, organisation and area
 - every dimension code is in its codelist
 - a DuckDB with extension autoloading turned off opens every file, and no
   row group has a bloom filter
@@ -258,16 +278,32 @@ name no standard licence and do not mention commercial use: they neither
 permit nor forbid it. They also say nothing about modified or derived
 works. The card declares `license: other` for this reason.
 
-The terms speak for all data on UNdata. They do not mention the rights of
-the organisations that compiled it; the `COMPILING_ORG` values above
-(Eurostat, the OECD, the IMF) were not checked against those
-organisations' own terms.
+The terms speak for UNdata as a whole and do not mention the rights of
+the organisations that compiled the data. `NA_MAIN` names the compiling
+organisation on every row, so each row is also read under that
+organisation's terms (read on 2026-10-06, not legal advice), and published
+only when they allow redistribution, commercial use included:
+
+| organisation (`COMPILING_ORG`) | published | areas | rows | reason |
+|---|---|---:|---:|---|
+| UNSD (the four other flows, which carry no compiling organisation) | yes | | 4,233,942 | UNSD's own data under the UNdata terms above |
+| European Commission, including Eurostat (`4D0`) | yes | 40 | 795,650 | Eurostat statistical data may be reused, commercially too, with the source acknowledged (https://ec.europa.eu/eurostat/help/copyright-notice) |
+| OECD (`6O0`) | yes | 22 | 277,347 | the OECD's terms allow reuse, including commercial, with attribution (https://www.oecd.org/en/about/terms-conditions.html) |
+| UN organisations (`1B0`) | yes | 97 | 88,848 | UN data on UNdata, under the UNdata terms above |
+| IMF (`1C0`) | no | 58 | 58,040 | the IMF's terms need permission for commercial reuse and for re-publishing a substantial amount (https://www.imf.org/en/about/copyright-and-terms) |
+| European Commission, Kosovo (`4D0`, `XK`) | no | 1 | 3,881 | Eurostat's notice excludes from commercial reuse the data of countries other than EU members, EFTA members and official EU candidate countries; Kosovo is a potential candidate |
+
+The rule is `compiler_status()` in `scripts/03_export_parquet.py` of the
+source repository; an organisation it does not know is left out until its
+terms are checked. `compilers` gives every flow, organisation and area its
+decision and reason.
 
 This dataset is not made or endorsed by the United Nations or UNSD. What
-was changed: the SDMX-CSV answers were concatenated per dataflow, typed and
+was changed: the SDMX-CSV answers were concatenated per dataflow, typed,
+the rows of the organisations above that are not published left out, and
 written as Parquet as described above, and the codelists and components
-were read from the structure messages; no value was changed. The raw files
-are unchanged. `LICENSE` beside this file says the same.
+were read from the structure messages; no value was changed. The uploaded
+raw files are unchanged. `LICENSE` beside this file says the same.
 
 ## Citation
 
@@ -276,3 +312,6 @@ As the terms ask, cite UNdata:
 > UNdata, United Nations Statistics Division. SDMX API, dataflows
 > DF_UNDATA_ENERGY, DF_UNData_EnergyBalance, NA_MAIN, DF_SEEA_AEA and
 > DF_SEEA_ENERGY, http://data.un.org, accessed 2026-10-06.
+
+and, for `NA_MAIN`, the organisation in `COMPILING_ORG` (Eurostat or the
+OECD) as their terms ask.

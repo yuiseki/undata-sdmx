@@ -20,8 +20,16 @@ source:
     compilers_in_the_data: |
       NA_MAIN carries COMPILING_ORG on every row: European Commission
       (including Eurostat) 799,531 rows, OECD 277,347, UN organisations
-      88,848, IMF 58,040. Those organisations' own terms were not checked.
-      No structure message or answer carries licence text.
+      88,848, IMF 58,040. Each row is also read under its compiling
+      organisation's terms (2026-10-06) and published only when they allow
+      redistribution, commercial use included: Eurostat (EU, EFTA and
+      official candidate countries), OECD and UN organisations published;
+      IMF (permission needed) and Eurostat's Kosovo rows (not an EU, EFTA
+      or candidate country) left out, 61,921 rows and 59 raw answers.
+      parquet/compilers.parquet gives every flow, organisation and area its
+      decision and reason; the rule is compiler_status() in
+      scripts/03_export_parquet.py. No structure message or answer carries
+      licence text.
   citation: >-
     UNdata, United Nations Statistics Division. SDMX API, dataflows
     DF_UNDATA_ENERGY, DF_UNData_EnergyBalance, NA_MAIN, DF_SEEA_AEA and
@@ -106,11 +114,12 @@ run:
 subsets:
   DF_UNDATA_ENERGY: {file: parquet/DF_UNDATA_ENERGY.parquet, rows: 1919234, columns: 11}
   DF_UNData_EnergyBalance: {file: parquet/DF_UNData_EnergyBalance.parquet, rows: 1045891, columns: 10}
-  NA_MAIN: {file: parquet/NA_MAIN.parquet, rows: 1223766, columns: 40}
+  NA_MAIN: {file: parquet/NA_MAIN.parquet, rows: 1161845, rows_left_out: 61921, columns: 40}
   DF_SEEA_AEA: {file: parquet/DF_SEEA_AEA.parquet, rows: 134248, columns: 32}
   DF_SEEA_ENERGY: {file: parquet/DF_SEEA_ENERGY.parquet, rows: 1134569, columns: 32}
   codelists: {file: parquet/codelists.parquet, rows: 9907, columns: 8}
   components: {file: parquet/components.parquet, rows: 120, columns: 11}
+  compilers: {file: parquet/compilers.parquet, rows: 726, columns: 7}
 
 not_included:
   DF_UNData_UNFCC, DF_UNDATA_WDI, DF_UNData_UIS, DF_UNDATA_MDG: HTTP 500 on every query (checked 2026-10-06); other agencies' data
@@ -134,6 +143,7 @@ modifications:
   raw: none. The API's answers, byte for byte.
   parquet:
     - one Parquet per dataflow, its area files concatenated in REF_AREA code order, rows in the order sent
+    - rows of compiling organisations whose terms do not allow redistribution left out (see licence.compilers_in_the_data)
     - OBS_VALUE, CONVERSION_FACTOR, PRE_BREAK_VALUE as DOUBLE; UNIT_MULT, DECIMALS as INTEGER; all else text
     - a value that does not fit its type stops the build; empty cells NULL; "NA" (111,167 rows) and ":" (613 rows) in OBS_VALUE NULL
     - codelists and components read from the structure messages of the same run

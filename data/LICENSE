@@ -35,10 +35,31 @@ The same page also says:
 Cite as: UNdata, United Nations Statistics Division, http://data.un.org
 (SDMX API), with the dataflow and the fetch date of the run.
 
+The terms speak for UNdata as a whole and do not mention the rights of
+the organisations that compiled the data. NA_MAIN names the compiling
+organisation on every row (COMPILING_ORG), so each row is also read under
+that organisation's terms (read on 2026-10-06, not legal advice) and
+published only when they allow redistribution, commercial use included:
+
+  published   Eurostat, for EU, EFTA and official EU candidate countries
+              (https://ec.europa.eu/eurostat/help/copyright-notice);
+              OECD (https://www.oecd.org/en/about/terms-conditions.html);
+              UN organisations and UNSD (the UNdata terms above)
+  left out    IMF (https://www.imf.org/en/about/copyright-and-terms:
+              permission needed for commercial reuse and for re-publishing
+              a substantial amount); Eurostat's rows for Kosovo, which is
+              not an EU, EFTA or candidate country
+
+parquet/compilers.parquet gives every flow, organisation and area its
+decision and reason. For NA_MAIN, also cite the organisation in
+COMPILING_ORG as its terms ask.
+
 This dataset is not made or endorsed by the United Nations or UNSD.
 
-The files under raw/<YYYY-MM-DD>/ are the API's answers, byte for byte;
-MANIFEST.json there records their URLs, sizes, sha256 and fetch times.
+The files under raw/<YYYY-MM-DD>/ are the API's answers, byte for byte,
+except the answers with rows left out above, which are not uploaded;
+MANIFEST.json there records the URLs, sizes, sha256 and fetch times of all
+the answers fetched.
 
 The Parquet under parquet/ was made from the SDMX-CSV answers of that run:
 
@@ -49,6 +70,7 @@ The Parquet under parquet/ was made from the SDMX-CSV answers of that run:
     floating-point numbers, UNIT_MULT and DECIMALS as integers; every other
     column stays text; an empty cell, and "NA" or ":" in a numeric column,
     became NULL
+  - the rows of the organisations left out above were dropped
   - codelists.parquet and components.parquet were read from the structure
     messages (SDMX-ML) of the same run
   - no value was changed
