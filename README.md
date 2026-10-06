@@ -63,8 +63,16 @@ run on the Hub: the dataset follows upstream corrections.
 UNdata's Terms of Use (<https://data.un.org/Host.aspx?Content=UNdataUse>)
 say that all data and metadata on UNdata "may be copied freely, duplicated
 and further distributed provided that UNdata is cited as the reference".
-They do not mention commercial use. See `data/README.md` for the full quote.
-The code in this repository is MIT (`LICENSE`).
+They do not mention commercial use, nor the rights of the organisations that
+compiled the data. `NA_MAIN` names the compiling organisation on every row,
+so `compiler_status()` in `scripts/03_export_parquet.py` reads each row
+under that organisation's terms and the export publishes it only when they
+allow redistribution, commercial use included: the IMF's rows and
+Eurostat's Kosovo rows are left out, and an organisation it does not know
+is left out until its terms are checked and added there.
+`data/parquet/compilers.parquet` records every decision with its reason.
+See `data/README.md` for the full quotes. The code in this repository is
+MIT (`LICENSE`).
 
 ## How to run
 
@@ -117,7 +125,8 @@ checks that each flow's rows add up to the observation count the API
 states, and compares every cell of the Parquet with the CSV.
 
 `publish.py` uploads the card, `data/LICENSE`, `data/provenance.yaml`, the
-Parquet and the current run's raw files, and deletes older runs on the Hub
+Parquet and the current run's raw files, except the answers of areas with
+any row left out (the manifest still lists them), and deletes older runs on the Hub
 in the same commit. It refuses to run if the card does not declare every
 Parquet file or name the current run, or a raw file differs from its
 manifest.
