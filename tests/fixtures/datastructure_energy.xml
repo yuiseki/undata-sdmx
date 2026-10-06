@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--NSI Web Service v8.15.1.0-->
+<message:Structure xmlns:message="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message" xmlns:structure="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure" xmlns:common="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common">
+  <message:Header>
+    <message:ID>IDREF832</message:ID>
+    <message:Test>false</message:Test>
+    <message:Prepared>2026-10-06T04:56:13.0339409+01:00</message:Prepared>
+    <message:Sender id="Unknown" />
+    <message:Receiver id="Unknown" />
+  </message:Header>
+  <message:Structures>
+    <structure:Codelists>
+      <structure:Codelist id="CL_FREQ" agencyID="SDMX" version="2.0" isFinal="true">
+        <common:Name xml:lang="en">Frequency</common:Name>
+        <common:Description xml:lang="en">This code list provides a set of values indicating the "frequency" of the data (e.g. weekly, monthly, quarterly). The concept “frequency” may refer to various stages in the production process, e.g. data collection or data dissemination. For example, a time series could be disseminated at annual frequency but the underlying data are compiled monthly. The code list is applicable for all different uses of "frequency". This code list was formally adopted on 4 December 2013. More information about and supporting material for this code list and SDMX code lists in general (e.g. list of generic codes for expressing general concepts like "Total", "Unknown", etc.; syntaxes for the creation of further codes; general guidelines for the creation of SDMX code lists) can be found at this address: https://sdmx.org/?page_id=4345.</common:Description>
+        <structure:Code id="A">
+          <common:Name xml:lang="en">Annual</common:Name>
+          <common:Description xml:lang="en">To be used for data collected or disseminated every year.</common:Description>
+        </structure:Code>
+        <structure:Code id="S">
+          <common:Name xml:lang="en">Half-yearly, semester</common:Name>
+          <common:Description xml:lang="en">To be used for data collected or disseminated every semester.</common:Description>
+        </structure:Code>
+        <structure:Code id="Q">
+          <common:Name xml:lang="en">Quarterly</common:Name>
+          <common:Description xml:lang="en">To be used for data collected or disseminated every quarter.</common:Description>
+        </structure:Code>
+      </structure:Codelist>
+      <structure:Codelist id="CL_OBS_STATUS" agencyID="SDMX" version="2.1" isFinal="true">
+        <common:Name xml:lang="en">Observation Status</common:Name>
+        <common:Description xml:lang="en">This code list provides coded information on 1) the quality of a value or 2) unusual or missing values. It was formally adopted on 15 September 2016. More information about this code list and SDMX code lists in general (e.g. list of generic codes for expressing general concepts like "Total", "Unknown", etc.; syntaxes for the creation of further codes; general guidelines for the creation of SDMX code lists) can be found at this address: https://sdmx.org/?page_id=4345.</common:Description>
+        <structure:Code id="A">
+          <common:Name xml:lang="en">Normal value</common:Name>
+          <common:Description xml:lang="en">To be used as default value if no value is provided or when no special coded qualification is assumed. Usually, it can be assumed that the source agency assigns sufficient confidence to the provided observation and/or the value is not expected to be dramatically revised.</common:Description>
+        </structure:Code>
+        <structure:Code id="B">
+          <common:Name xml:lang="en">Time series break</common:Name>
+          <common:Description xml:lang="en">Observations are characterised as such when different content exists or a different methodology has been applied to this observation as compared with the preceding one (the one given for the previous period).</common:Description>
+        </structure:Code>
+        <structure:Code id="D">
+          <common:Name xml:lang="en">Definition differs</common:Name>
+          <common:Description xml:lang="en">Used to indicate slight deviations from the established methodology (footnote-type information); these divergences do not imply a break in time series.</common:Description>
+        </structure:Code>
+      </structure:Codelist>
+      <structure:Codelist id="CL_UNIT_MULT" agencyID="SDMX" version="1.1" isFinal="true">
+        <common:Name xml:lang="en">Unit Multiplier</common:Name>
+        <common:Description xml:lang="en">This code list provides code values for indicating the magnitude in the units of measurement. More information about this code list and SDMX code lists in general (e.g. list of generic codes for expressing general concepts like "Total", "Unknown", etc.; syntaxes for the creation of further codes; general guidelines for the creation of SDMX code lists) can be found at this address: https://sdmx.org/?page_id=4345.</common:Description>
+        <structure:Code id="0">
+          <common:Name xml:lang="en">Units</common:Name>
+          <common:Description xml:lang="en">In scientific notation, expressed as ten raised to the power of zero (10^0)</common:Description>
+        </structure:Code>
+        <structure:Code id="1">
+          <common:Name xml:lang="en">Tens</common:Name>
+          <common:Description xml:lang="en">In scientific notation, expressed as ten raised to the power of one (10^1)</common:Description>
+        </structure:Code>
+        <structure:Code id="2">
+          <common:Name xml:lang="en">Hundreds</common:Name>
+          <common:Description xml:lang="en">In scientific notation, expressed as ten raised to the power of two (10^2)</common:Description>
+        </structure:Code>
+      </structure:Codelist>
+      <structure:Codelist id="CL_AREA_NRG" agencyID="UNSD" version="1.2" isFinal="true">
+        <common:Name xml:lang="en">Reference area code list</common:Name>
+        <structure:Code id="004">
+          <common:Annotations>
+            <common:Annotation id="@SDMX">
+              <common:AnnotationType>ORDER</common:AnnotationType>
+              <common:AnnotationText xml:lang="en">10</common:AnnotationText>
+            </common:Annotation>
+          </common:Annotations>
+          <common:Name xml:lang="en">Afghanistan</common:Name>
+        </structure:Code>
+        <structure:Code id="008">
+          <common:Annotations>
+            <common:Annotation id="@SDMX">
+              <common:AnnotationType>ORDER</common:AnnotationType>
+              <common:AnnotationText xml:lang="en">20</common:AnnotationText>
+            </common:Annotation>
+          </common:Annotations>
+          <common:Name xml:lang="en">Albania</common:Name>
+        </structure:Code>
+        <structure:Code id="012">
+          <common:Annotations>
+            <common:Annotation id="@SDMX">
+              <common:AnnotationType>ORDER</common:AnnotationType>
+              <common:AnnotationText xml:lang="en">30</common:AnnotationText>
+            </common:Annotation>
+          </common:Annotations>
+          <common:Name xml:lang="en">Algeria</common:Name>
+        </structure:Code>
+      </structure:Codelist>
+      <structure:Codelist id="CL_COMMODITY_NRG" agencyID="UNSD" version="1.0" isFinal="true">
+        <common:Name xml:lang="en">Commodity code list</common:Name>
+        <structure:Code id="0100">
+          <common:Name xml:lang="en">Hard Coal</common:Name>
+        </structure:Code>
+        <structure:Code id="0110">
+          <common:Name xml:lang="en">Anthracite</common:Name>
+          <structure:Parent>
+            <Ref id="0100" />
+          </structure:Parent>
+        </structure:Code>
+        <structure:Code id="0121">
+          <common:Name xml:lang="en">Coking coal</common:Name>
+          <structure:Parent>
+            <Ref id="0100" />
+          </structure:Parent>
+        </structure:Code>
+      </structure:Codelist>
+      <structure:Codelist id="CL_TRANSACTION_NRG" agencyID="UNSD" version="1.1" isFinal="true">
+        <common:Name xml:lang="en">Energy transaction code list</common:Name>
+        <structure:Code id="01">
+          <common:Name xml:lang="en">Production</common:Name>
+        </structure:Code>
+        <structure:Code id="010">
+          <common:Name xml:lang="en">Production from off-shore</common:Name>
+          <structure:Parent>
+            <Ref id="01" />
+          </structure:Parent>
+        </structure:Code>
+        <structure:Code id="013">
+          <common:Name xml:lang="en">Production from refineries</common:Name>
+          <structure:Parent>
+            <Ref id="01" />
+          </structure:Parent>
+        </structure:Code>
+      </structure:Codelist>
+      <structure:Codelist id="CL_UNIT_MEASURE_NRG" agencyID="UNSD" version="1.0" isFinal="true">
+        <common:Name xml:lang="en">Unit of Measure code list</common:Name>
+        <structure:Code id="M3">
+          <common:Name xml:lang="en">Cubic metres</common:Name>
+        </structure:Code>
+        <structure:Code id="MW">
+          <common:Name xml:lang="en">Megawatts</common:Name>
+        </structure:Code>
+        <structure:Code id="TJ">
+          <common:Name xml:lang="en">Terajoules</common:Name>
+        </structure:Code>
+      </structure:Codelist>
+    </structure:Codelists>
+    <structure:Concepts>
+      <structure:ConceptScheme id="CS_ENERGY" agencyID="UNSD" version="1.1" isFinal="true">
+        <common:Name xml:lang="en">Energy concept scheme</common:Name>
+        <structure:Concept id="FREQ">
+          <common:Name xml:lang="en">Frequency</common:Name>
+        </structure:Concept>
+        <structure:Concept id="REF_AREA">
+          <common:Name xml:lang="en">Reference Area</common:Name>
+        </structure:Concept>
+        <structure:Concept id="COMMODITY">
+          <common:Name xml:lang="en">Commodity</common:Name>
+        </structure:Concept>
+        <structure:Concept id="TRANSACTION">
+          <common:Name xml:lang="en">Transaction</common:Name>
+        </structure:Concept>
+        <structure:Concept id="TIME_PERIOD">
+          <common:Name xml:lang="en">Time period</common:Name>
+        </structure:Concept>
+        <structure:Concept id="OBS_VALUE">
+          <common:Name xml:lang="en">Observation value</common:Name>
+        </structure:Concept>
+        <structure:Concept id="UNIT_MULT">
+          <common:Name xml:lang="en">Unit Multiplier</common:Name>
+        </structure:Concept>
+        <structure:Concept id="UNIT_MEASURE">
+          <common:Name xml:lang="en">Unit of Measure</common:Name>
+        </structure:Concept>
+        <structure:Concept id="OBS_STATUS">
+          <common:Name xml:lang="en">Observation status</common:Name>
+        </structure:Concept>
+        <structure:Concept id="CONVERSION_FACTOR">
+          <common:Name xml:lang="en">Conversion factor</common:Name>
+        </structure:Concept>
+      </structure:ConceptScheme>
+    </structure:Concepts>
+    <structure:DataStructures>
+      <structure:DataStructure id="DSD_ENERGY" agencyID="UNSD" version="1.2" isFinal="true">
+        <common:Name xml:lang="en">Dissemination DSD for Energy Statistics</common:Name>
+        <structure:DataStructureComponents>
+          <structure:DimensionList id="DimensionDescriptor">
+            <structure:Dimension id="FREQ" position="1">
+              <structure:ConceptIdentity>
+                <Ref id="FREQ" maintainableParentID="CS_ENERGY" maintainableParentVersion="1.1" agencyID="UNSD" package="conceptscheme" class="Concept" />
+              </structure:ConceptIdentity>
+              <structure:LocalRepresentation>
+                <structure:Enumeration>
+                  <Ref id="CL_FREQ" version="2.0" agencyID="SDMX" package="codelist" class="Codelist" />
+                </structure:Enumeration>
+              </structure:LocalRepresentation>
+            </structure:Dimension>
+            <structure:Dimension id="REF_AREA" position="2">
+              <structure:ConceptIdentity>
+                <Ref id="REF_AREA" maintainableParentID="CS_ENERGY" maintainableParentVersion="1.1" agencyID="UNSD" package="conceptscheme" class="Concept" />
+              </structure:ConceptIdentity>
+              <structure:LocalRepresentation>
+                <structure:Enumeration>
+                  <Ref id="CL_AREA_NRG" version="1.2" agencyID="UNSD" package="codelist" class="Codelist" />
+                </structure:Enumeration>
+              </structure:LocalRepresentation>
+            </structure:Dimension>
+            <structure:Dimension id="COMMODITY" position="3">
+              <structure:ConceptIdentity>
+                <Ref id="COMMODITY" maintainableParentID="CS_ENERGY" maintainableParentVersion="1.1" agencyID="UNSD" package="conceptscheme" class="Concept" />
+              </structure:ConceptIdentity>
+              <structure:LocalRepresentation>
+                <structure:Enumeration>
+                  <Ref id="CL_COMMODITY_NRG" version="1.0" agencyID="UNSD" package="codelist" class="Codelist" />
+                </structure:Enumeration>
+              </structure:LocalRepresentation>
+            </structure:Dimension>
+            <structure:Dimension id="TRANSACTION" position="4">
+              <structure:ConceptIdentity>
+                <Ref id="TRANSACTION" maintainableParentID="CS_ENERGY" maintainableParentVersion="1.1" agencyID="UNSD" package="conceptscheme" class="Concept" />
+              </structure:ConceptIdentity>
+              <structure:LocalRepresentation>
+                <structure:Enumeration>
+                  <Ref id="CL_TRANSACTION_NRG" version="1.1" agencyID="UNSD" package="codelist" class="Codelist" />
+                </structure:Enumeration>
+              </structure:LocalRepresentation>
+            </structure:Dimension>
+            <structure:TimeDimension id="TIME_PERIOD" position="5">
+              <structure:ConceptIdentity>
+                <Ref id="TIME_PERIOD" maintainableParentID="CS_ENERGY" maintainableParentVersion="1.1" agencyID="UNSD" package="conceptscheme" class="Concept" />
+              </structure:ConceptIdentity>
+              <structure:LocalRepresentation>
+                <structure:TextFormat textType="ObservationalTimePeriod" />
+              </structure:LocalRepresentation>
+            </structure:TimeDimension>
+          </structure:DimensionList>
+          <structure:AttributeList id="AttributeDescriptor">
+            <structure:Attribute id="UNIT_MULT" assignmentStatus="Mandatory">
+              <structure:ConceptIdentity>
+                <Ref id="UNIT_MULT" maintainableParentID="CS_ENERGY" maintainableParentVersion="1.1" agencyID="UNSD" package="conceptscheme" class="Concept" />
+              </structure:ConceptIdentity>
+              <structure:LocalRepresentation>
+                <structure:Enumeration>
+                  <Ref id="CL_UNIT_MULT" version="1.1" agencyID="SDMX" package="codelist" class="Codelist" />
+                </structure:Enumeration>
+              </structure:LocalRepresentation>
+              <structure:AttributeRelationship>
+                <structure:PrimaryMeasure>
+                  <Ref id="OBS_VALUE" />
+                </structure:PrimaryMeasure>
+              </structure:AttributeRelationship>
+            </structure:Attribute>
+            <structure:Attribute id="UNIT_MEASURE" assignmentStatus="Mandatory">
+              <structure:ConceptIdentity>
+                <Ref id="UNIT_MEASURE" maintainableParentID="CS_ENERGY" maintainableParentVersion="1.1" agencyID="UNSD" package="conceptscheme" class="Concept" />
+              </structure:ConceptIdentity>
+              <structure:LocalRepresentation>
+                <structure:Enumeration>
+                  <Ref id="CL_UNIT_MEASURE_NRG" version="1.0" agencyID="UNSD" package="codelist" class="Codelist" />
+                </structure:Enumeration>
+              </structure:LocalRepresentation>
+              <structure:AttributeRelationship>
+                <structure:Dimension>
+                  <Ref id="FREQ" />
+                </structure:Dimension>
+                <structure:Dimension>
+                  <Ref id="REF_AREA" />
+                </structure:Dimension>
+                <structure:Dimension>
+                  <Ref id="COMMODITY" />
+                </structure:Dimension>
+                <structure:Dimension>
+                  <Ref id="TRANSACTION" />
+                </structure:Dimension>
+              </structure:AttributeRelationship>
+            </structure:Attribute>
+            <structure:Attribute id="OBS_STATUS" assignmentStatus="Mandatory">
+              <structure:ConceptIdentity>
+                <Ref id="OBS_STATUS" maintainableParentID="CS_ENERGY" maintainableParentVersion="1.1" agencyID="UNSD" package="conceptscheme" class="Concept" />
+              </structure:ConceptIdentity>
+              <structure:LocalRepresentation>
+                <structure:Enumeration>
+                  <Ref id="CL_OBS_STATUS" version="2.1" agencyID="SDMX" package="codelist" class="Codelist" />
+                </structure:Enumeration>
+              </structure:LocalRepresentation>
+              <structure:AttributeRelationship>
+                <structure:PrimaryMeasure>
+                  <Ref id="OBS_VALUE" />
+                </structure:PrimaryMeasure>
+              </structure:AttributeRelationship>
+            </structure:Attribute>
+            <structure:Attribute id="CONVERSION_FACTOR" assignmentStatus="Conditional">
+              <structure:ConceptIdentity>
+                <Ref id="CONVERSION_FACTOR" maintainableParentID="CS_ENERGY" maintainableParentVersion="1.1" agencyID="UNSD" package="conceptscheme" class="Concept" />
+              </structure:ConceptIdentity>
+              <structure:AttributeRelationship>
+                <structure:PrimaryMeasure>
+                  <Ref id="OBS_VALUE" />
+                </structure:PrimaryMeasure>
+              </structure:AttributeRelationship>
+            </structure:Attribute>
+          </structure:AttributeList>
+          <structure:MeasureList id="MeasureDescriptor">
+            <structure:PrimaryMeasure id="OBS_VALUE">
+              <structure:ConceptIdentity>
+                <Ref id="OBS_VALUE" maintainableParentID="CS_ENERGY" maintainableParentVersion="1.1" agencyID="UNSD" package="conceptscheme" class="Concept" />
+              </structure:ConceptIdentity>
+            </structure:PrimaryMeasure>
+          </structure:MeasureList>
+        </structure:DataStructureComponents>
+      </structure:DataStructure>
+    </structure:DataStructures>
+  </message:Structures>
+</message:Structure>

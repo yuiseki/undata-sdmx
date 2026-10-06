@@ -1,0 +1,57 @@
+UNdata Terms of Use
+https://data.un.org/Host.aspx?Content=UNdataUse (read on 2026-10-06)
+
+Everything under this directory comes from the SDMX API of UNdata
+(https://data.un.org/Host.aspx?Content=API), a service of the United
+Nations Statistics Division (UNSD), Department of Economic and Social
+Affairs. The API page says: "The API is governed by UNdata Terms of Use".
+
+The Terms of Use say:
+
+  "All data and metadata provided on UNdata's website are available free
+  of charge and may be copied freely, duplicated and further distributed
+  provided that UNdata is cited as the reference."
+
+(The apostrophe in the original is a typographic one.) The terms name no
+licence such as Creative Commons, and they say nothing about commercial
+use, neither permitting nor forbidding it, and nothing about modified or
+derived works.
+
+The same page also says:
+
+  "The data and metadata presented on UNdata are supplied as contained in
+  the source database without any addition, subtraction, amendment, or
+  modification by the United Nations Statistics Division."
+
+  "Information about the quality or limitations of the data and metadata
+  should be obtained from the organization responsible for the source
+  database."
+
+  "The United Nations Statistics Division periodically incorporates,
+  without notice, revisions, updates and improvements to UNdata's content
+  according to the sources' availability but undertakes no obligation to do
+  so, timeously or at all."
+
+Cite as: UNdata, United Nations Statistics Division, http://data.un.org
+(SDMX API), with the dataflow and the fetch date of the run.
+
+This dataset is not made or endorsed by the United Nations or UNSD.
+
+The files under raw/<YYYY-MM-DD>/ are the API's answers, byte for byte;
+MANIFEST.json there records their URLs, sizes, sha256 and fetch times.
+
+The Parquet under parquet/ was made from the SDMX-CSV answers of that run:
+
+  - the answers of a dataflow, one per reference area, were concatenated in
+    the order of their REF_AREA code; rows and columns are as the API sent
+    them
+  - OBS_VALUE, CONVERSION_FACTOR and PRE_BREAK_VALUE were typed as
+    floating-point numbers, UNIT_MULT and DECIMALS as integers; every other
+    column stays text; an empty cell, and "NA" or ":" in a numeric column,
+    became NULL
+  - codelists.parquet and components.parquet were read from the structure
+    messages (SDMX-ML) of the same run
+  - no value was changed
+
+The code that fetches, checks and converts is in the repository this
+dataset was built from (MIT licence) and does not apply here.

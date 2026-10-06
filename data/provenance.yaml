@@ -1,0 +1,140 @@
+# Where this data comes from and what was done to it.
+
+source:
+  name: UNdata SDMX API, UNSD dataflows
+  publisher: United Nations Statistics Division (UNSD), Department of Economic and Social Affairs
+  api: https://data.un.org/legacy/ws/rest (documented as http://data.un.org/ws/rest/, which redirects there)
+  api_documentation: https://data.un.org/Host.aspx?Content=API
+  server: NSI Web Service v8.15.1.0 (Eurostat SDMX-RI), from the XML comment of each structure message
+  versions: none. The API overwrites in place; this dataset holds the newest run and follows upstream corrections.
+  licence:
+    applied: UNdata Terms of Use (https://data.un.org/Host.aspx?Content=UNdataUse, read 2026-10-06)
+    text: >-
+      All data and metadata provided on UNdata’s website are available free of
+      charge and may be copied freely, duplicated and further distributed
+      provided that UNdata is cited as the reference.
+    card: "license: other, license_name: undata-terms-of-use"
+    attribution_required: true
+    commercial_use: not mentioned in the terms
+    derivatives: not mentioned in the terms
+    compilers_in_the_data: |
+      NA_MAIN carries COMPILING_ORG on every row: European Commission
+      (including Eurostat) 799,531 rows, OECD 277,347, UN organisations
+      88,848, IMF 58,040. Those organisations' own terms were not checked.
+      No structure message or answer carries licence text.
+  citation: >-
+    UNdata, United Nations Statistics Division. SDMX API, dataflows
+    DF_UNDATA_ENERGY, DF_UNData_EnergyBalance, NA_MAIN, DF_SEEA_AEA and
+    DF_SEEA_ENERGY, http://data.un.org, accessed 2026-10-06.
+
+run:
+  date: 2026-10-06
+  started_at: "2026-10-06T04:00:21Z"
+  completed_at: "2026-10-06T04:49:55Z"
+  method: |
+    dataflow/all/all/latest; datastructure/<agency>/<id>/<version>?references=children;
+    availableconstraint/<flow>/all/all/all; then data/<flow>/<key> once per REF_AREA code
+    in the constraint, key fixing REF_AREA only, Accept: text/csv (SDMX-CSV 1.0).
+    Sequential, at least 1.5 s apart; every request succeeded on the first attempt.
+  files: 737  # 11 structure messages and 726 data answers, each kept from its first attempt
+  bytes: 505812563
+  failed: 0
+  structure_files:
+    structure/dataflow.xml: {bytes: 6403, sha256: ebdd7d721705bc7bfff86cb6d608a0063fa470be4585500c692a5cd078f8475b}
+    structure/datastructure_UNSD_DSD_ENERGY_1.2.xml: {bytes: 200057, sha256: 8faf7c75140d4235a3ecdd874306ccb048079b16a2d226b5adde4b9b0a312b03}
+    structure/datastructure_UNSD_DSD_ENERGY_BALANCE_UNDATA_1.0.xml: {bytes: 308164, sha256: 0e8440b26b8e68ac41baa92ba59a7721f6bb9a08b1f3b9c28bb72def9215ea9a}
+    structure/datastructure_ESTAT_NA_MAIN_1.9.xml: {bytes: 833178, sha256: 408d6410d4c4906b7b482037a41bd7b288ee6cd2fffbd566b72f6bd75c61311c}
+    structure/datastructure_ESTAT_SEEAAIR_1.3.xml: {bytes: 711985, sha256: 8ea5ed380a28729cede0c4ea3c91ae35c8f36b59823d7e37be8e63310ed9ceba}
+    structure/datastructure_ESTAT_SEEANRG_1.3.xml: {bytes: 758658, sha256: c5ec9716c81c0c1ffac394846837a3f12f18eda069db083762d2ade8b2b2842b}
+    structure/availableconstraint_DF_UNDATA_ENERGY.xml: {bytes: 27177, sha256: 1df8d55d354cc54350ad91a480af237eb401cc78bfe72f944218a398802ced69}
+    structure/availableconstraint_DF_UNData_EnergyBalance.xml: {bytes: 15475, sha256: a812d98e33829b5c029990057898ee614e7de8a7be7449fa4a7eea2d64c37705}
+    structure/availableconstraint_NA_MAIN.xml: {bytes: 17494, sha256: 79f32461c90bd98de52c5d5909726a2e5c50416da49cb6b4f2be65943e446796}
+    structure/availableconstraint_DF_SEEA_AEA.xml: {bytes: 10142, sha256: 054ca9b11a4a2d98b3a2d05953a4508087fb395dcb0f7b71042d8f9f09cedfe4}
+    structure/availableconstraint_DF_SEEA_ENERGY.xml: {bytes: 12113, sha256: 62b6fa835c0b00b71d83dc1d15030dc98b82a5d15ff1127cb2f5854a488131f1}
+  dataflows:
+    DF_UNDATA_ENERGY:
+      agency: UNSD
+      version: "1.2"
+      datastructure: UNSD,DSD_ENERGY,1.2
+      files: 245
+      bytes: 136053414
+      rows: 1919234
+      stated_observations: 1919234
+      values: 1919234
+      stated_time_range: [1990, 2024]
+    DF_UNData_EnergyBalance:
+      agency: UNSD
+      version: "1.0"
+      datastructure: UNSD,DSD_ENERGY_BALANCE_UNDATA,1.0
+      files: 218
+      bytes: 83876194
+      rows: 1045891
+      stated_observations: 1045891
+      values: 1045891
+      stated_time_range: [1990, 2023]
+    NA_MAIN:
+      agency: ESTAT
+      version: "1.9"
+      datastructure: ESTAT,NA_MAIN,1.9
+      files: 218
+      bytes: 161518926
+      rows: 1223766
+      stated_observations: 1223766
+      values: 1198925
+      stated_time_range: [1947-Q1, 2025-Q3]
+    DF_SEEA_AEA:
+      agency: ESTAT
+      version: "1.3"
+      datastructure: ESTAT,SEEAAIR,1.3
+      files: 7
+      bytes: 12697553
+      rows: 134248
+      stated_observations: 134248
+      values: 17148
+      stated_time_range: [1990, 2022]
+    DF_SEEA_ENERGY:
+      agency: ESTAT
+      version: "1.3"
+      datastructure: ESTAT,SEEANRG,1.3
+      files: 38
+      bytes: 108765630
+      rows: 1134569
+      stated_observations: 1134569
+      values: 1128764
+      stated_time_range: [2000, 2022]
+
+subsets:
+  DF_UNDATA_ENERGY: {file: parquet/DF_UNDATA_ENERGY.parquet, rows: 1919234, columns: 11}
+  DF_UNData_EnergyBalance: {file: parquet/DF_UNData_EnergyBalance.parquet, rows: 1045891, columns: 10}
+  NA_MAIN: {file: parquet/NA_MAIN.parquet, rows: 1223766, columns: 40}
+  DF_SEEA_AEA: {file: parquet/DF_SEEA_AEA.parquet, rows: 134248, columns: 32}
+  DF_SEEA_ENERGY: {file: parquet/DF_SEEA_ENERGY.parquet, rows: 1134569, columns: 32}
+  codelists: {file: parquet/codelists.parquet, rows: 9907, columns: 8}
+  components: {file: parquet/components.parquet, rows: 120, columns: 11}
+
+not_included:
+  DF_UNData_UNFCC, DF_UNDATA_WDI, DF_UNData_UIS, DF_UNDATA_MDG: HTTP 500 on every query (checked 2026-10-06); other agencies' data
+  DF_SDG_GLH: UNSD publishes the SDG global database at https://unstats.un.org/sdgs/dataportal
+  DF_UNDATA_COUNTRYDATA: no records
+  NASEC_IDCFINA_A, NASEC_IDCFINA_Q, NASEC_IDCNFSA_A, NASEC_IDCNFSA_Q: not taken
+
+checked:
+  note: scripts/02_verify.py, with Python's csv module and DuckDB, before upload
+  items:
+    - every raw file against MANIFEST.json (size and sha256); structure files well-formed XML
+    - every SDMX-CSV answer read with the csv module, header as the DSD gives, DATAFLOW and REF_AREA on every row, row counts as in the manifest
+    - every planned area has its file; no failed slice
+    - rows per flow equal the observation count the API states (sdmx_metrics), all five
+    - every cell of each dataflow Parquet equals the CSV's, in file and row order
+    - every dimension code is in its codelist
+    - a DuckDB without extension autoloading opens every file
+    - no bloom filters
+
+modifications:
+  raw: none. The API's answers, byte for byte.
+  parquet:
+    - one Parquet per dataflow, its area files concatenated in REF_AREA code order, rows in the order sent
+    - OBS_VALUE, CONVERSION_FACTOR, PRE_BREAK_VALUE as DOUBLE; UNIT_MULT, DECIMALS as INTEGER; all else text
+    - a value that does not fit its type stops the build; empty cells NULL; "NA" (111,167 rows) and ":" (613 rows) in OBS_VALUE NULL
+    - codelists and components read from the structure messages of the same run
+    - written with zstd, without bloom filters
